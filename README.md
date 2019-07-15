@@ -80,7 +80,7 @@ Configuration of KuDu Sink:
 | type | - | sink类型 |
 | customKey | - | 指定的表的主键 |
 | tableName | - | kudu表名 |
-| batchSize | - | sink每批次处理数 |
+| batchSize | 100 | sink每批次处理数 |
 | namespace | - | kudu表前缀 |
 | producer.operation | - | kudu表插入操作类型 |
-| producer | - | kudu数据操作具体执行类 |
+| producer | com.flume.sink.kudu.JsonKuduOperationProducer | kudu数据操作具体执行类 |
