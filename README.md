@@ -9,7 +9,10 @@ flume-kudu-sink
 
 #### 具体用法  
 * 项目根目录下执行mvn clean package
-* 将tar/flume.kudu.sink-1.0-SNAPSHOT.jar文件拷贝到flume-ng根目录下的lib文件夹中即可
+* 将tar/flume.kudu.sink-1.0-SNAPSHOT.jar文件拷贝到flume-ng根目录下的lib文件夹中
+* 启动Flume:nohup ./bin/flume-ng agent --conf ./conf --conf-file log_t.conf --name agent -Dflume.root.logger=INFO,console >  /dev/null 2>&1 &
+###### 注意  
+-Dflume.root.logger传递的是log4j.properties文件中的参数，例如如果想每个实例一个文件，那么传递-Dflume.log.file=haha.log
 
 #### 用法示例  
 ```
