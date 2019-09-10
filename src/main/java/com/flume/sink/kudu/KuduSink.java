@@ -16,16 +16,9 @@ import org.apache.flume.annotations.InterfaceStability;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.instrumentation.SinkCounter;
 import org.apache.flume.sink.AbstractSink;
+import org.apache.kudu.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.kudu.client.AsyncKuduClient;
-import org.apache.kudu.client.KuduClient;
-import org.apache.kudu.client.KuduSession;
-import org.apache.kudu.client.KuduTable;
-import org.apache.kudu.client.Operation;
-import org.apache.kudu.client.OperationResponse;
-import org.apache.kudu.client.SessionConfiguration;
 
 import static com.flume.sink.kudu.KuduSinkConfigurationConstants.*;
 
@@ -39,6 +32,7 @@ public class KuduSink extends AbstractSink implements Configurable {
     private static final String DEFAULT_KUDU_OPERATION_PRODUCER =
             "com.flume.sink.kudu.JsonKuduOperationProducer";
     private static final boolean DEFAULT_IGNORE_DUPLICATE_ROWS = true;
+    private static final Integer DEFAULT_FLUSH_BUFFER_SIZE = 20000;
 
     private String masterAddresses;
     private String tableName;
@@ -47,6 +41,7 @@ public class KuduSink extends AbstractSink implements Configurable {
     private long batchSize;
     private long timeoutMillis;
     private boolean ignoreDuplicateRows;
+    private int flushBufferSize;
     private KuduTable table;
     private KuduSession session;
     private KuduClient client;
@@ -76,6 +71,7 @@ public class KuduSink extends AbstractSink implements Configurable {
         session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
         session.setTimeoutMillis(timeoutMillis);
         session.setIgnoreAllDuplicateRows(ignoreDuplicateRows);
+        session.setMutationBufferSpace(flushBufferSize);
 
         String realTableName = null;
         if("".equals(namespace)){
@@ -135,6 +131,7 @@ public class KuduSink extends AbstractSink implements Configurable {
         batchSize = context.getLong(BATCH_SIZE, DEFAULT_BATCH_SIZE);
         timeoutMillis = context.getLong(TIMEOUT_MILLIS, DEFAULT_TIMEOUT_MILLIS);
         ignoreDuplicateRows = context.getBoolean(IGNORE_DUPLICATE_ROWS, DEFAULT_IGNORE_DUPLICATE_ROWS);
+        flushBufferSize = context.getInteger(FLUSH_BUFFER_SIZE,DEFAULT_FLUSH_BUFFER_SIZE);
         String operationProducerType = context.getString(PRODUCER);
 
         // Check for operations producer, if null set default operations producer type.
@@ -190,10 +187,10 @@ public class KuduSink extends AbstractSink implements Configurable {
                 for (Operation o : operations) {
                     session.apply(o);
                 }
-                logger.info(String.format("kudu成功插入%s库%s表",namespace,tableName));
+//                logger.info(String.format("kudu成功插入%s库%s表",namespace,tableName));
             }
 
-            logger.debug("Flushing {} events", txnEventCount);
+            logger.info("Flushing {} events", txnEventCount);
             List<OperationResponse> responses = session.flush();
             if (responses != null) {
                 for (OperationResponse response : responses) {

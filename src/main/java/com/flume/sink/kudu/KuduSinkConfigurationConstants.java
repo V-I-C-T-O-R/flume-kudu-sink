@@ -69,4 +69,6 @@ public class KuduSinkConfigurationConstants {
      * Whether to ignore duplicate primary key errors caused by inserts.
      */
     public static final String IGNORE_DUPLICATE_ROWS = "ignoreDuplicateRows";
+
+    public static final String FLUSH_BUFFER_SIZE = "flushBufferSize";
 }

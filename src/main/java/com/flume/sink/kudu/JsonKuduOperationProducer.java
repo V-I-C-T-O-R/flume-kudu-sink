@@ -39,6 +39,7 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
     public static final boolean DEFAULT_SKIP_BAD_COLUMN_VALUE = false;
     public static final String WARN_UNMATCHED_ROWS_PROP = "skipUnmatchedRows";
     public static final boolean DEFAULT_WARN_UNMATCHED_ROWS = true;
+
     private String tableName;
     private KuduClient client;
     private String customKeys;
@@ -116,11 +117,10 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
                 }
                 PartialRow row = op.getRow();
                 for (ColumnSchema col : schema.getColumns()) {
-
                     try {
                         String colName = col.getName();
+
                         String colValue = String.valueOf(rawMap.get(colName));
-//                        logger.info("Column:" + colName + "----" + colValue);
                         coerceAndSet(colValue, colName, Type.STRING, row);
                     } catch (NumberFormatException e) {
                         String msg = String.format(
