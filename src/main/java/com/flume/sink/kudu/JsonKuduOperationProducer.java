@@ -97,7 +97,9 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
             try{
                 if (!this.client.tableExists(this.tableName)) {
                     Schema schema = new Schema(columns);
+                    logger.info("表{}不存在,开始创建",this.tableName);
                     this.client.createTable(this.tableName, schema,new CreateTableOptions().setRangePartitionColumns(keys));
+                    logger.info("表{}创建完成",this.tableName);
                 }
 
                 KuduTable kubuTable = this.client.openTable(this.tableName);
@@ -139,6 +141,7 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
                 ops.add(op);
             }catch (KuduException e){
                 e.printStackTrace();
+                logger.error("unknow error:",e);
             }
         }
 
