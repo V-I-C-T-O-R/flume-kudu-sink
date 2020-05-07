@@ -15,11 +15,14 @@ import org.apache.kudu.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -121,8 +124,13 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
                 for (ColumnSchema col : schema.getColumns()) {
                     try {
                         String colName = col.getName();
-
                         String colValue = String.valueOf(rawMap.get(colName));
+                        if(isDouble(colValue)){
+                            NumberFormat nf = NumberFormat.getInstance();
+                            nf.setGroupingUsed(false);
+                            nf.setMaximumFractionDigits(20);
+                            colValue = nf.format(Double.parseDouble(colValue));
+                        }
                         coerceAndSet(colValue, colName, Type.STRING, row);
                     } catch (NumberFormatException e) {
                         String msg = String.format(
@@ -147,6 +155,22 @@ public class JsonKuduOperationProducer implements KuduOperationsProducer {
 
         return ops;
     }
+
+    //判断是否是浮点数（double和float）
+    private boolean isDouble(String str) {
+        if (null == str || "".equals(str)) {
+            return false;
+        }
+        BigDecimal bd = null;
+        try{
+            bd = new BigDecimal(str);
+        }catch (NumberFormatException e){
+            return false;
+        }
+        Pattern pattern = Pattern.compile("^[-\\+]?\\d*[.]\\d+$");
+        return pattern.matcher(bd.toPlainString()).matches();
+    }
+
     /**
      * Coerces the string `rawVal` to the type `type` and sets the resulting
      * value for column `colName` in `row`.
